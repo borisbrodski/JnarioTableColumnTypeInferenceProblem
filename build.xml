@@ -1,0 +1,92 @@
+<project name="project" default="default">
+    <description>
+            Compile and run tests
+    </description>
+
+	<property name="build.dir" value="build/"/>
+	<property name="lib.dir" value="lib/"/>
+	
+	<!-- Classpath for the Jnario standalone compiler itself  -->
+	<path id="jnario-compiler-classpath">
+		<fileset dir="${lib.dir}">
+			<include name="junit.jar" />
+			<include name="xtend-runtime-libs/*.jar" />
+			<include name="xtext-libs/*.jar" />
+			<include name="jnario-compiler/*.jar" />
+			<include name="jnario-runtime-libs/*.jar" />
+		</fileset>
+	</path>
+	<!-- Classpath for the Jnario specs and features to be compiled  -->
+	<path id="jnario-classpath">
+		<fileset dir="${lib.dir}">
+			<include name="junit.jar" />
+			<include name="xtend-runtime-libs/*.jar" />
+			<include name="jnario-runtime-libs/*.jar" />
+		</fileset>
+	</path>
+	
+	<path id="java-compile-classpath">
+		<fileset dir="${lib.dir}">
+			<include name="junit.jar" />
+			<include name="xtend-runtime-libs/*.jar" />
+			<include name="jnario-runtime-libs/*.jar" />
+		</fileset>
+	</path>
+	<path id="test-classpath">
+		<fileset dir="${lib.dir}">
+			<include name="junit.jar" />
+			<include name="xtend-runtime-libs/*.jar" />
+			<include name="jnario-runtime-libs/*.jar" />
+		</fileset>
+		<pathelement location="${build.dir}/bin" />
+	
+	</path>
+	
+    <target name="clear" depends="" description="description">
+    	<delete dir="${build.dir}"/>
+	</target>
+    <target name="compileJnario" depends="" description="description">
+    	<mkdir dir="${build.dir}/jnario-src"/>
+		<mkdir dir="${build.dir}/temp" />
+		<pathconvert pathsep="${path.separator}" property="jnario-classpath-string" refid="jnario-classpath">
+		</pathconvert>
+		<java classpathref="jnario-compiler-classpath" classname="org.jnario.compiler.CompilerMain" fork="true" failonerror="yes">
+			<jvmarg value="-Dfile.encoding=UTF8" />
+			<arg value="-encoding" />
+			<arg value="UTF-8" />
+
+			<arg value="-classpath" />
+			<arg value="${jnario-classpath-string}" />
+
+			<arg value="-d" />
+			<arg value="${build.dir}/jnario-gen" />
+
+			<arg value="-tempdir" />
+			<arg value="${build.dir}/temp" />
+
+			<arg value="src" />
+		</java>
+    </target>
+	
+	<target name="compileJava">
+		<mkdir dir="${build.dir}/bin" />
+		<javac classpathref="java-compile-classpath" destdir="${build.dir}/bin" encoding="UTF-8" target="1.7" debug="true" source="1.7">
+			<src path="src" />
+			<src path="${build.dir}/jnario-gen" />
+		</javac>
+	</target>
+	
+	<target name="runTests">
+		<junit haltonerror="false" haltonfailure="false" fork="yes" showoutput="yes">
+			<classpath refid="test-classpath" />
+
+			<test name="test.AllTestsSuite">
+				<formatter type="xml" />
+			</test>
+			<jvmarg value="-Dfile.encoding=UTF8" />
+		</junit>
+	</target>
+
+    <target name="default" depends="clear, compileJnario, compileJava, runTests" description="Clean+build"/>
+
+</project>
